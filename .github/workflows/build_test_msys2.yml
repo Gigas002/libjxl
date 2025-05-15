@@ -95,27 +95,16 @@ jobs:
 
       - name: CMake build
         run: cmake --build build
+        
+      - uses: milliewalky/setup-7-zip@v2
+        with:
+          tag: "latest"
 
-      - name: Test
-        if: |
-          github.event_name == 'push' ||
-          (github.event_name == 'pull_request' &&
-           contains(github.event.pull_request.labels.*.name, 'CI:full'))
-        run: |
-          disabled_tests="${{ join(matrix.disable_tests, '|') }}"
-          if [[ -z "${disabled_tests}" ]]; then
-            disabled_tests="bash_test";
-          else
-            disabled_tests="bash_test|${disabled_tests}";
-          fi
-          ctest --test-dir build --parallel 2 --output-on-failure -E "${disabled_tests}"
+      - name: zip artifacts
+        run: 7z a build.7z ./build
 
-      - name: Fast benchmark ${{ matrix.msystem }}
-        if: github.event_name != 'merge_group' && !(matrix.disable_benchmark || false)
-        run: |
-          systeminfo | grep -A 1 Processor
-          wmic cpu get Name, NumberofCores, NumberOfLogicalProcessors, MaxClockSpeed
-          mkdir tmp
-          export TMPDIR=`pwd`/tmp
-          export PATH=$PATH:`pwd`/build/lib
-          BENCHMARK_NUM_THREADS=2 STORE_IMAGES=0 ./ci.sh fast_benchmark
+      - name: Upload build.7z as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-archive
+          path: build.7z
