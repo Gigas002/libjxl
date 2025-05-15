@@ -7,13 +7,9 @@
 
 name: Build/Test MSYS2
 on:
-  merge_group:
   push:
     branches:
       - main
-      - v*.*.x
-  pull_request:
-    types: [opened, reopened, labeled, unlabeled, synchronize]
 
 permissions:
   contents: read
