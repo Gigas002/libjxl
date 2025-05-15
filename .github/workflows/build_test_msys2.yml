@@ -13,35 +13,22 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
+  
 jobs:
   build_test:
     name: Windows MSYS2 / ${{ matrix.msystem }}
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'CI:none') }}
     runs-on: windows-latest
-    continue-on-error: ${{ matrix.faulty || false }}
     strategy:
-      fail-fast: false
       matrix:
         include:
          - msystem: mingw64
-         - msystem: clang64
-         - msystem: mingw32
            disable_tests:
              - ButteraugliTest.Lossless
              - ButteraugliTest.Distmap
              - JxlTest.RoundtripLargeEmptyModular
            disable_benchmark: true
-         # "Legacy" toolchains are being "phased-out":
-         # https://www.msys2.org/news/#2023-12-13-starting-to-drop-some-32-bit-packages
-         # clang32 is already missing required "gtest" and "libavif"
-         # - msystem: clang32
-         #   disable_benchmark: true
-
+           
     defaults:
       run:
         shell: msys2 {0}
@@ -100,7 +87,7 @@ jobs:
         run: 7z a build.7z ./build
 
       - name: Upload build.7z as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-archive
           path: build.7z
